@@ -1,0 +1,31 @@
+<!DOCTYPE html>
+<html lang="nl">
+    <head>
+        <title>WebSocket Demo - Bestuur je Avatar</title>
+        <script src="https://cdn.socket.io/4.0.0/socket.io.min.js"></script>
+        <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
+        <link rel="stylesheet" href="style.css">
+    </head>
+    <body> 
+        <h1 id="headertekst">Beweeg je Avatar</h1>
+        <button id="buttonleft" onclick="sendMove('left')">&larr;</button>
+        <button id="buttonright" onclick="sendMove('right')">&rarr;</button>
+        <button id="buttonup" onclick="sendMove('up')">&uarr;</button>
+        <button id="buttondown" onclick="sendMove('down')">&darr;</button>
+
+        <div id="avatars" style="position: relative; width: 0px; height: 0px; background-color: #f0f0f0;">
+            <!-- Hier worden de avatars getekend -->
+        </div>
+
+        <script>
+            // Maak verbinding met de server via WebSocket
+            const socket = io();
+
+            // Functie om beweging naar de server te sturen
+            function sendMove(direction) {
+                socket.emit("move", { direction: direction });
+            }
+
+        </script>
+    </body>
+</html>

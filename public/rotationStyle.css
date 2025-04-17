@@ -1,0 +1,70 @@
+body {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    height: 100vh;
+    margin: 0;
+    font-family: Arial, sans-serif;
+    background-color: #f8f8f8;
+}
+
+.container {
+    width: 90%;  /* Zorgt ervoor dat het op kleine schermen goed past */
+    max-width: 600px; /* Voorkomt dat het te breed wordt op grote schermen */
+    text-align: center;
+}
+
+
+div {
+    position: absolute;
+    width: 20vw;
+    height: 20vw;
+    border: none;
+    background-color: #0ca474;
+    color: white;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+    border-radius: calc(5vw);
+    cursor: pointer;
+    display: flex;                /* Add this */
+    justify-content: center;     /* Center horizontally */
+    align-items: center;         /* Center vertically */
+    font-size: 8vw;    
+    user-select: none; /* Voorkomt tekstselectie */
+    -webkit-user-select: none; /* Voor Safari */
+    -moz-user-select: none; /* Voor Firefox */
+    -ms-user-select: none; /* Voor oudere Edge */
+}
+#buttonleft {
+    top: calc(50vh - 10vw);
+    left: calc(20vw);
+}
+#buttonright {
+    top: calc(50vh - 10vw);
+    left: calc(60vw);
+}
+#buttonup {
+    top: calc(50vh - 30vw);
+    left: calc(40vw);;
+}
+#buttondown {
+    top: calc(50vh + 10vw);
+    left: calc(40vw);;
+}
+
+
+
+* {
+    touch-action: manipulation;  /* Voorkomt dubbel tikken om te zoomen */
+    user-select: none;
+}
+
+html, body {
+    overflow: hidden;
+}
+
+#headertekst {
+    position: absolute;
+    top: calc(50vh - 55vw);
+    font-size: 10vw;
+}

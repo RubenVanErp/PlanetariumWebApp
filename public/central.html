@@ -1,0 +1,81 @@
+<!DOCTYPE html>
+<html lang="nl">
+    <head>
+        <title>WebSocket Demo - Centraal Scherm</title>
+        <script src="https://cdn.socket.io/4.0.0/socket.io.min.js"></script>
+        <link rel="stylesheet" href="centralStyle.css">
+    </head>
+    <body>
+        <h1>Centraal Scherm - Alle Avatars</h1>
+
+        <div id="avatars" style="position: aboslute; width: 0; height: 0; background-color: #2d87dc; top: 0px; left: 0px">
+            <!-- Hier worden alle avatars getoond -->
+        </div>
+
+        <div id="centralCircle"></div>
+
+        <script>
+            // Maak verbinding met de server via WebSocket
+            const socket = io();
+
+            // Functie om avatars te tekenen
+            function drawAvatars(avatars) {
+                const avatarsContainer = document.getElementById("avatars");
+
+                for (const id in avatars) {
+                    const avatar = avatars[id];
+                    let div = document.getElementById("avatar-" + id);
+
+                    if (!div) {
+                        div = document.createElement("div");
+                        div.id = "avatar-" + id;
+                        div.className = "rocket"
+                        div.style.position = "absolute";
+                        div.style.width = "50px";
+                        div.style.height = "50px";
+                        div.style.backgroundColor = "gray";
+                        div.style.transition = "left 0.1s linear, top 0.1s linear, transform 0.1s linear, scale 0.1s linear";
+                        div.style.transformOrigin = "center center";
+                        div.style.zIndex = 2;
+                        document.body.appendChild(div);
+
+                        const img = document.createElement("img");
+                        img.src = "assets/rocket.svg";
+                        img.style.width = "50px";
+                        img.style.height = "50px";
+                        img.style.transform = "rotate(45deg)";
+                        div.appendChild(img);
+                    }
+
+                    let scaleFactor = 0.5 //change this if assets are too small
+                    let distance = Math.sqrt((window.innerHeight / 2 - avatar.y) ** 2 + (window.innerWidth / 2 - avatar.x) ** 2);
+                    
+                    let scale = scaleFactor/(Math.sin(Math.PI * distance / ( 2 * window.innerHeight / 2)) *( 2 * window.innerHeight / 2 / (Math.PI * distance)));
+
+                    div.style.left = avatar.x - 25 + "px";
+                    div.style.top = avatar.y - 25+ "px";
+                    
+                    
+                    div.style.transform = `scale(${scale}) rotate(${avatar.rotation * 180 / Math.PI}deg)`
+                }
+            }
+
+            socket.emit("registerCentralScreen", {})
+
+            // Ontvang de avatars van de server bij de initiële verbinding
+            socket.on("allAvatars", (avatars) => {
+                drawAvatars(avatars);
+            });
+
+            socket.on("killDiv", (id) => {
+                document.getElementById("avatar-" + id).remove();
+    
+            });
+
+            // Ontvang de bijgewerkte avatars van de server
+            socket.on("updateAvatars", (avatars) => {
+                drawAvatars(avatars);
+            });
+        </script>
+    </body>
+</html>

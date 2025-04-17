@@ -1,0 +1,64 @@
+body {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    height: 100vh;
+    margin: 0;
+    font-family: Arial, sans-serif;
+    background-color: #f8f8f8;
+}
+
+.container {
+    width: 90%;  /* Zorgt ervoor dat het op kleine schermen goed past */
+    max-width: 600px; /* Voorkomt dat het te breed wordt op grote schermen */
+    text-align: center;
+}
+
+
+div {
+    position: absolute;
+    width: 20vw;
+    height: 20vw;
+    font-size: 20px;
+    border: none;
+    background-color: #292c2b;
+    color: rgb(255, 255, 255);
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+    border-radius: calc(10vw);
+    cursor: pointer;
+    user-select: none; /* Voorkomt tekstselectie */
+    -webkit-user-select: none; /* Voor Safari */
+    -moz-user-select: none; /* Voor Firefox */
+    -ms-user-select: none; /* Voor oudere Edge */
+    touch-action: manipulation;  /* Prevents double-tap zoom */
+}
+.arrow {
+    position: absolute;
+    font-size: 2vw;
+    color: white;
+}
+.arrow.up { top: 10%; left: 50%; transform: translateX(-50%); }
+.arrow.down { bottom: 10%; left: 50%; transform: translateX(-50%); }
+.arrow.left { left: 10%; top: 50%; transform: translateY(-50%); }
+.arrow.right { right: 10%; top: 50%; transform: translateY(-50%); }
+
+
+* {
+    touch-action: manipulation;  /* Voorkomt dubbel tikken om te zoomen */
+    user-select: none;
+    -webkit-user-select: none; /* Voor Safari */
+    -moz-user-select: none; /* Voor Firefox */
+    -ms-user-select: none; /* Voor oudere Edge */
+}
+
+html, body {
+    overflow: hidden;
+}
+
+#headertekst {
+    touch-action: manipulation;  /* Prevents double-tap zoom */
+    position: absolute;
+    top: calc(50vh - 55vw);
+    font-size: 10vw;
+}
