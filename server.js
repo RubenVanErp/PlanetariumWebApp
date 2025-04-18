@@ -156,12 +156,41 @@ io.on("connection", (socket) => {
         avatars[socket.id].rotation -= angleBetweenCenterAndRocketAfterMove - angleBetweenCenterAndRocketBeforeMove
       }
       console.log(angleBetweenCenterAndRocketAfterMove)
-
-      
     }
     if (data.direction == "backward"){
+      let centerX = 300; //FIX this, get actual center
+      let centerY = 300;
+
+      let centerXDir = centerX - avatars[socket.id].x;
+      let centerYDir = centerY - avatars[socket.id].y;
+
+      let CenterVectorLength = Math.sqrt(centerXDir**2 + centerYDir**2)
+
+      centerXDir = centerXDir/CenterVectorLength
+      centerYDir = centerYDir/CenterVectorLength
+      
+      let rocketXDir = Math.cos(avatars[socket.id].rotation)
+      let rocketYDir = Math.sin(avatars[socket.id].rotation)
+
+      let angleBetweenCenterAndRocketBeforeMove = Math.acos(centerXDir*rocketXDir+centerYDir*rocketYDir)
+
       avatars[socket.id].x -= speed * Math.cos(avatars[socket.id].rotation);
       avatars[socket.id].y -= speed * Math.sin(avatars[socket.id].rotation);
+
+      centerXDir = 300 - avatars[socket.id].x;
+      centerYDir = 300 - avatars[socket.id].y;
+
+      CenterVectorLength = Math.sqrt(centerXDir**2 + centerYDir**2)
+
+      centerXDir = centerXDir/CenterVectorLength
+      centerYDir = centerYDir/CenterVectorLength
+
+      let angleBetweenCenterAndRocketAfterMove = Math.acos(centerXDir*rocketXDir+centerYDir*rocketYDir)
+      if (CenterVectorLength > speed * 1){
+        avatars[socket.id].rotation -= angleBetweenCenterAndRocketAfterMove - angleBetweenCenterAndRocketBeforeMove
+      }
+      console.log(angleBetweenCenterAndRocketAfterMove)
+
     }
     if (data.direction == "clockwise"){
       avatars[socket.id].rotation = (avatars[socket.id].rotation + rotationSpeed) ;
