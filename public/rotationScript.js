@@ -38,5 +38,5 @@ for (let [buttonId, direction] of buttons) {
 }
 
 function emitDirection(direction) {
-  socket.emit("moveRotation", { direction });
+  socket.emit("moveRotation", { direction});
 }

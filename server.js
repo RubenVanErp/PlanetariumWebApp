@@ -115,14 +115,49 @@ io.on("connection", (socket) => {
   socket.on("moveRotation", (data) => {
     // Bewaar de nieuwe positie van de avatar
     if (!avatars[socket.id]) {
-      avatars[socket.id] = { x: 300, y: 300, rotation:0 };  // Startpositie
+      avatars[socket.id] = { x: 301, y: 300, rotation:0 };  // Startpositie
     }
     const speed = 20;
     const rotationSpeed = speed/100;
     
     if (data.direction == "forward"){
+      let centerX = 300; //FIX this, get actual center
+      let centerY = 300;
+
+      let centerXDir = centerX - avatars[socket.id].x;
+      let centerYDir = centerY - avatars[socket.id].y;
+
+      let CenterVectorLength = Math.sqrt(centerXDir**2 + centerYDir**2)
+
+      centerXDir = centerXDir/CenterVectorLength
+      centerYDir = centerYDir/CenterVectorLength
+      
+      let rocketXDir = Math.cos(avatars[socket.id].rotation)
+      let rocketYDir = Math.sin(avatars[socket.id].rotation)
+
+      let angleBetweenCenterAndRocketBeforeMove = Math.acos(centerXDir*rocketXDir+centerYDir*rocketYDir)
+
       avatars[socket.id].x += speed * Math.cos(avatars[socket.id].rotation);
       avatars[socket.id].y += speed * Math.sin(avatars[socket.id].rotation);
+      //avatars[socket.id].rotation compared to center, angle should be conserverd.
+      //Calculate angle made by rocket and center, and this should stay the same through 
+      //forward or backward motion.
+
+      centerXDir = 300 - avatars[socket.id].x;
+      centerYDir = 300 - avatars[socket.id].y;
+
+      CenterVectorLength = Math.sqrt(centerXDir**2 + centerYDir**2)
+
+      centerXDir = centerXDir/CenterVectorLength
+      centerYDir = centerYDir/CenterVectorLength
+
+      let angleBetweenCenterAndRocketAfterMove = Math.acos(centerXDir*rocketXDir+centerYDir*rocketYDir)
+      if (CenterVectorLength > speed * 1){
+        avatars[socket.id].rotation -= angleBetweenCenterAndRocketAfterMove - angleBetweenCenterAndRocketBeforeMove
+      }
+      console.log(angleBetweenCenterAndRocketAfterMove)
+
+      
     }
     if (data.direction == "backward"){
       avatars[socket.id].x -= speed * Math.cos(avatars[socket.id].rotation);
@@ -162,28 +197,3 @@ server.listen(port, () => {
   console.log(`Server draait op http://localhost:${port}`);
 });
 
-
-
-
-
-/*
-
-
-Wat hebben we nodig:
-
-Dat de artis server onze node.js server host
-
-Alternatief:
-Een subdomein die we zelf kunnen hosten (cloud, of eigen server),
-
-
-Als dat allemaal niet kan.
-Mogen we dan zelf een domein aanschaffen en daarop Artis naam, logo's etc
-gebruiken
-
-
-
-
-
-
-*/
