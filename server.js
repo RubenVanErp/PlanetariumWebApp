@@ -118,7 +118,7 @@ io.on("connection", (socket) => {
   socket.on("moveRotation", (data) => {
     // Bewaar de nieuwe positie van de avatar
     if (!avatars[socket.id]) {
-      avatars[socket.id] = { x: 301, y: 300, rotation:0 };  // Startpositie
+      avatars[socket.id] = { x: screenCenter.x, y: screenCenter.y, rotation:0 };  // Startpositie
     }
     const speed = 20;
     const rotationSpeed = speed/100;
