@@ -2,6 +2,7 @@ const express = require("express");
 const http = require("http");
 const { Server } = require("socket.io");
 const path = require('path');
+const { secureHeapUsed } = require("crypto");
 
 /*---------------------------
 
@@ -30,6 +31,22 @@ function updateAvatars() {
   }
 }
 
+function sphericalTo2d(P){
+  // constants for your canvas
+const cx = screenWidth  / 2;
+const cy = screenHeight / 2;
+const f  = screenWidth / Math.PI;   // equidistant 180°
+  // P is {x,y,z} on unit sphere
+  const theta = Math.acos(P.z);                // n = (0,0,1)
+  const phi   = Math.atan2(P.y, P.x);
+  const r = f * theta;
+  return {
+    u: cx + r * Math.cos(phi),
+    v: cy + r * Math.sin(phi)
+  };
+}
+
+
 /* Loop to check how many updates per second
 let updateCounter = 0;
 UpdateInterval = setInterval(function() {
@@ -45,6 +62,9 @@ app.use(express.static(path.join(__dirname, 'public')));
 
 // Bijhouden van posities voor avatars
 let avatars = {};
+let screenCenter = {x:0, y:0}
+let screenWidth = 0
+let screenHeight = 0
 
 // Serve de HTML-pagina voor spelers
 app.get("/", (req, res) => {
@@ -77,52 +97,48 @@ io.on("connection", (socket) => {
   // Bij de eerste verbinding krijgt elke client de initiële avatarposities
   socket.emit("allAvatars", avatars);
 
-  // Ontvang input van de client (bewegingen)
-  socket.on("move", (data) => {
-    // Bewaar de nieuwe positie van de avatar
-    if (!avatars[socket.id]) {
-      avatars[socket.id] = { x: 100, y: 100 };  // Startpositie
-    }
-
-    if (data.direction === "left") {
-      avatars[socket.id].x -= 50;
-    } else if (data.direction === "right") {
-      avatars[socket.id].x += 50;
-    } else if (data.direction === "up") {
-      avatars[socket.id].y -= 50;
-    } else if (data.direction === "down") {
-      avatars[socket.id].y += 50;
-    }
-
-    // Stuur de nieuwe posities van alle avatars naar alle clients
-    io.emit("updateAvatars", avatars);
-  });
-
-  socket.on("moveAvatar", (data) => {
-    // Bewaar de nieuwe positie van de avatar
-    if (!avatars[socket.id]) {
-      avatars[socket.id] = { x: 100, y: 100 };  // Startpositie
-    }
-    const speed = 10;
-    
-    avatars[socket.id].x += speed * data.xdir
-    avatars[socket.id].y += speed * data.ydir
-
-    // Stuur de nieuwe posities van alle avatars naar alle clients
-    updateAvatars()
-  });
-
   socket.on("moveRotation", (data) => {
     // Bewaar de nieuwe positie van de avatar
     if (!avatars[socket.id]) {
-      avatars[socket.id] = { x: 301, y: 300, rotation:0 };  // Startpositie
+      //avatars[socket.id] = { P:{x: 0, y: 0, z:1}, rotation:0 };  // Startpositie spherical
+      avatars[socket.id] = { x: 300, y: 300, rotation:0 }; // Startpositie Polar
     }
+
     const speed = 20;
     const rotationSpeed = speed/100;
-    
+    /*
     if (data.direction == "forward"){
-      let centerX = 300; //FIX this, get actual center
-      let centerY = 300;
+      //spherical movement
+      // fixed great‑circle axis (unit) and start point P0
+      A = avatars[socket.id].P
+      B = {x:0, y:0, z:0} //Some vector in the direction of 
+
+      const k  = normalisedCross(A, B);
+      const P0 = normalise(A);
+
+      // advance parameter t by your speed (radians / frame)
+      let t = 0;
+      function step() {
+        t += deltaT;
+        const P = {
+          x: Math.cos(t)*P0.x + Math.sin(t)*(k.y*P0.z - k.z*P0.y) + (1-Math.cos(t))*k.x*(k.x*P0.x+k.y*P0.y+k.z*P0.z),
+          y: Math.cos(t)*P0.y + Math.sin(t)*(k.z*P0.x - k.x*P0.z) + (1-Math.cos(t))*k.y*(k.x*P0.x+k.y*P0.y+k.z*P0.z),
+          z: Math.cos(t)*P0.z + Math.sin(t)*(k.x*P0.y - k.y*P0.x) + (1-Math.cos(t))*k.z*(k.x*P0.x+k.y*P0.y+k.z*P0.z)
+        };
+        const {u,v} = projectToScreen(P);
+        avatarDiv.style.transform = `translate(${u}px,${v}px)`;
+        requestAnimationFrame(step);////
+      }
+      requestAnimationFrame(step);////
+
+    }
+      */
+    
+
+    if (data.direction == "forward"){
+    //polar movement
+      let centerX = screenCenter.x; 
+      let centerY = screenCenter.y;
 
       let centerXDir = centerX - avatars[socket.id].x;
       let centerYDir = centerY - avatars[socket.id].y;
@@ -143,8 +159,8 @@ io.on("connection", (socket) => {
       //Calculate angle made by rocket and center, and this should stay the same through 
       //forward or backward motion.
 
-      centerXDir = 300 - avatars[socket.id].x;
-      centerYDir = 300 - avatars[socket.id].y;
+      centerXDir = centerX - avatars[socket.id].x;
+      centerYDir = centerY - avatars[socket.id].y;
 
       CenterVectorLength = Math.sqrt(centerXDir**2 + centerYDir**2)
 
@@ -155,11 +171,10 @@ io.on("connection", (socket) => {
       if (CenterVectorLength > speed * 1){
         avatars[socket.id].rotation -= angleBetweenCenterAndRocketAfterMove - angleBetweenCenterAndRocketBeforeMove
       }
-      console.log(angleBetweenCenterAndRocketAfterMove)
     }
     if (data.direction == "backward"){
-      let centerX = 300; //FIX this, get actual center
-      let centerY = 300;
+      let centerX = screenCenter.x; 
+      let centerY = screenCenter.y;
 
       let centerXDir = centerX - avatars[socket.id].x;
       let centerYDir = centerY - avatars[socket.id].y;
@@ -177,9 +192,9 @@ io.on("connection", (socket) => {
       avatars[socket.id].x -= speed * Math.cos(avatars[socket.id].rotation);
       avatars[socket.id].y -= speed * Math.sin(avatars[socket.id].rotation);
 
-      centerXDir = 300 - avatars[socket.id].x;
-      centerYDir = 300 - avatars[socket.id].y;
-
+      centerXDir = centerX - avatars[socket.id].x;
+      centerYDir = centerY - avatars[socket.id].y;
+      
       CenterVectorLength = Math.sqrt(centerXDir**2 + centerYDir**2)
 
       centerXDir = centerXDir/CenterVectorLength
@@ -189,9 +204,8 @@ io.on("connection", (socket) => {
       if (CenterVectorLength > speed * 1){
         avatars[socket.id].rotation -= angleBetweenCenterAndRocketAfterMove - angleBetweenCenterAndRocketBeforeMove
       }
-      console.log(angleBetweenCenterAndRocketAfterMove)
-
     }
+
     if (data.direction == "clockwise"){
       avatars[socket.id].rotation = (avatars[socket.id].rotation + rotationSpeed) ;
     }
@@ -217,6 +231,16 @@ io.on("connection", (socket) => {
     delete avatars[socket.id];  // Verwijder de avatar van de client
     
     updateAvatars()  // Update de avatars voor alle clients
+    }
+  });
+
+  socket.on("reportScreenSize", (data) => {
+    if (data.x != screenCenter.x || data.y != screenCenter.y){
+      screenWidth = data.width
+      screenHeight = data.height
+      screenCenter.x = data.x
+      screenCenter.y = data.y
+      console.log("Updated screen center to", data)
     }
   });
 });
