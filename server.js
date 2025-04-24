@@ -7,10 +7,8 @@ const path = require('path');
 
 TODO:
 check why using mobile its jittery
-Fix multitouch
 Server side throtteling and batching
-Cloud hosting
-Fix the scaling, not linear in distance, but some other relation of circle circumference vs sphere slice circumferance
+fix multiple central screens connecting
 
 notes:
 Fisheye equidistant dome projection
@@ -20,16 +18,17 @@ Fisheye equidistant dome projection
 const app = express();
 const server = http.createServer(app);
 const io = new Server(server);
+app.use(express.static(path.join(__dirname, 'public')));
 
 const port = 3000;
 
-let centralScreenSocket = [];
+
+//Gener functions
 function updateAvatars() {
   if (centralScreenSocket) {
       io.to(centralScreenSocket).emit("allAvatars", avatars);
   }
 }
-
 function cross(a, b) {
   return {
     x: a.y * b.z - a.z * b.y,
@@ -49,23 +48,21 @@ UpdateLogInterval = setInterval(function() {
 }, 1000);
 */
 
-app.use(express.static(path.join(__dirname, 'public')));
 
 // Bijhouden van posities voor avatars
 let avatars = {};
 let screenCenter = {x:0, y:0}
 let screenWidth = 0
 let screenHeight = 0
+let centralScreenSocket = [];
+
+
 
 // Serve de HTML-pagina voor spelers
 app.get("/", (req, res) => {
-  res.sendFile(__dirname + "/public/user.html");
+  res.sendFile(__dirname + "/public/rotationControl.html");
 });
 
-// Serve de joystick HTML-pagina voor spelers
-app.get("/joystick", (req, res) => {
-  res.sendFile(__dirname + "/public/joystick.html");
-});
 
 app.get("/rotation", (req, res) => {
   res.sendFile(__dirname + "/public/rotationControl.html");
@@ -75,6 +72,8 @@ app.get("/rotation", (req, res) => {
 app.get("/central", (req, res) => {
   res.sendFile(__dirname + "/public/central.html");
 });
+
+
 
 // WebSocket logica
 io.on("connection", (socket) => {
@@ -87,41 +86,6 @@ io.on("connection", (socket) => {
 
   // Bij de eerste verbinding krijgt elke client de initiële avatarposities
   socket.emit("allAvatars", avatars);
-
-  // Ontvang input van de client (bewegingen)
-  socket.on("move", (data) => {
-    // Bewaar de nieuwe positie van de avatar
-    if (!avatars[socket.id]) {
-      avatars[socket.id] = { x: 100, y: 100 };  // Startpositie
-    }
-
-    if (data.direction === "left") {
-      avatars[socket.id].x -= 50;
-    } else if (data.direction === "right") {
-      avatars[socket.id].x += 50;
-    } else if (data.direction === "up") {
-      avatars[socket.id].y -= 50;
-    } else if (data.direction === "down") {
-      avatars[socket.id].y += 50;
-    }
-
-    // Stuur de nieuwe posities van alle avatars naar alle clients
-    io.emit("updateAvatars", avatars);
-  });
-
-  socket.on("moveAvatar", (data) => {
-    // Bewaar de nieuwe positie van de avatar
-    if (!avatars[socket.id]) {
-      avatars[socket.id] = { x: 100, y: 100 };  // Startpositie
-    }
-    const speed = 10;
-    
-    avatars[socket.id].x += speed * data.xdir
-    avatars[socket.id].y += speed * data.ydir
-
-    // Stuur de nieuwe posities van alle avatars naar alle clients
-    updateAvatars()
-  });
 
   socket.on("moveRotation", (data) => {
     // Bewaar de nieuwe positie van de avatar
@@ -214,6 +178,7 @@ io.on("connection", (socket) => {
     updateAvatars()
   });
 
+
   // Als iemand de verbinding verbreekt, verwijder de avatar
   socket.on("disconnect", () => {
     if (centralScreenSocket.includes(socket.id)) {
@@ -230,6 +195,9 @@ io.on("connection", (socket) => {
     }
   });
 
+
+
+  //From center screen
   socket.on("reportScreenCenter", (data) => {
     if (data.x != screenCenter.x || data.y != screenCenter.y){
       screenWidth = data.width
@@ -240,6 +208,9 @@ io.on("connection", (socket) => {
     }
   });
 });
+
+
+
 
 // Start de server
 server.listen(port, () => {
