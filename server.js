@@ -30,6 +30,14 @@ function updateAvatars() {
   }
 }
 
+function cross(a, b) {
+  return {
+    x: a.y * b.z - a.z * b.y,
+    y: a.z * b.x - a.x * b.z,
+    z: a.x * b.y - a.y * b.x
+  };
+}
+
 /* Loop to check how many updates per second
 let updateCounter = 0;
 UpdateInterval = setInterval(function() {
@@ -118,7 +126,7 @@ io.on("connection", (socket) => {
   socket.on("moveRotation", (data) => {
     // Bewaar de nieuwe positie van de avatar
     if (!avatars[socket.id]) {
-      avatars[socket.id] = { x: screenCenter.x, y: screenCenter.y, rotation:0 };  // Startpositie
+      avatars[socket.id] = { x: screenCenter.x+1, y: screenCenter.y, rotation:0 };  // Startpositie
     }
     const speed = 20;
     const rotationSpeed = speed/100;
@@ -138,6 +146,7 @@ io.on("connection", (socket) => {
       let rocketXDir = Math.cos(avatars[socket.id].rotation)
       let rocketYDir = Math.sin(avatars[socket.id].rotation)
 
+
       let angleBetweenCenterAndRocketBeforeMove = Math.acos(centerXDir*rocketXDir+centerYDir*rocketYDir)
 
       avatars[socket.id].x += speed * Math.cos(avatars[socket.id].rotation);
@@ -155,8 +164,9 @@ io.on("connection", (socket) => {
       centerYDir = centerYDir/CenterVectorLength
 
       let angleBetweenCenterAndRocketAfterMove = Math.acos(centerXDir*rocketXDir+centerYDir*rocketYDir)
-      if (CenterVectorLength > speed * 1){
-        avatars[socket.id].rotation -= angleBetweenCenterAndRocketAfterMove - angleBetweenCenterAndRocketBeforeMove
+
+      if (CenterVectorLength > speed * 1 ){
+        avatars[socket.id].rotation -=  Math.sign(cross({x:centerXDir, y:centerYDir, z:0},   {x:rocketXDir, y:rocketYDir, z:0}).z) * (angleBetweenCenterAndRocketAfterMove - angleBetweenCenterAndRocketBeforeMove)
       }
     }
     if (data.direction == "backward"){
@@ -189,7 +199,7 @@ io.on("connection", (socket) => {
 
       let angleBetweenCenterAndRocketAfterMove = Math.acos(centerXDir*rocketXDir+centerYDir*rocketYDir)
       if (CenterVectorLength > speed * 1){
-        avatars[socket.id].rotation -= angleBetweenCenterAndRocketAfterMove - angleBetweenCenterAndRocketBeforeMove
+        avatars[socket.id].rotation -=  Math.sign(cross({x:centerXDir, y:centerYDir, z:0},   {x:rocketXDir, y:rocketYDir, z:0}).z) * (angleBetweenCenterAndRocketAfterMove - angleBetweenCenterAndRocketBeforeMove)
       }
     }
     if (data.direction == "clockwise"){
