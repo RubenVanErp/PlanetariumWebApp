@@ -60,7 +60,17 @@
                 }
             }
 
+
+            emitCentralScreenInterval = setInterval(function() {
+                let x = window.innerWidth / 2;
+                let y = window.innerHeight / 2
+                let width = window.innerWidth
+                let height = window.innerHeight
+                socket.emit("reportScreenCenter", {x, y, width, height})
+            }, 1000);
+
             socket.emit("registerCentralScreen", {})
+
 
             // Ontvang de avatars van de server bij de initiële verbinding
             socket.on("allAvatars", (avatars) => {
