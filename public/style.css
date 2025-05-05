@@ -65,8 +65,4 @@ html, body {
     position: absolute;
     top: calc(50vh - 55vw);
     font-size: 10vw;
-    user-select: none;
-    -webkit-user-select: none;
-    -moz-user-select: none;
-    -ms-user-select: none;
 }

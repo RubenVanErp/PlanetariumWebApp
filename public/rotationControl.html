@@ -8,13 +8,17 @@
         <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css" rel="stylesheet">
         
     </head>
-    <body> 
-        <h1 id="headertekst">Beweeg je Avatar</h1>
-        <div id="buttonleft" ><i class="fas fa-rotate-left"></i></div>
-        <div id="buttonright" ><i class="fas fa-rotate-right"></i></div>
-        <div id="buttonup" ><i class="arrow up fas fa-arrow-up"></i></div>
-        <div id="buttondown" ><i class="arrow down fas fa-arrow-down"></i></div>
-
+    <body>  
+        <img src="assets/planetarium_zwart.png" alt="", id="logo">
+        <div id="buttonBackground">
+            <div id="buttonleft" class="button" ><i class="fas fa-rotate-left"></i></div>
+            <div id="buttonright" class="button" ><i class="fas fa-rotate-right"></i></div>
+            <div id="buttonup" class="button" ><i class="arrow up fas fa-arrow-up"></i></div>
+            <div id="buttondown" class="button" ><i class="arrow down fas fa-arrow-down"></i></div>
+        </div>
+        <div id="rocketCustomisationBackground">
+            <div id="minimap"></div>
+        </div>
         <div id="avatars" style="position: relative; width: 0px; height: 0px; background-color: #f0f0f0;">
             <!-- Hier worden de avatars getekend -->
         </div>
@@ -22,3 +26,4 @@
         <script src="rotationScript.js"></script>
     </body>
 </html>
+

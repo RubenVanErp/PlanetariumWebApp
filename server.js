@@ -7,10 +7,10 @@ const path = require('path');
 
 TODO:
 check why using mobile its jittery
-Fix multitouch
+keep rockets in bounds
 Server side throtteling and batching
-Cloud hosting
-Fix the scaling, not linear in distance, but some other relation of circle circumference vs sphere slice circumferance
+Cloud hosting launch
+make pretty
 
 notes:
 Fisheye equidistant dome projection
@@ -30,13 +30,9 @@ function updateAvatars() {
   }
 }
 
-function cross(a, b) {
-  return {
-    x: a.y * b.z - a.z * b.y,
-    y: a.z * b.x - a.x * b.z,
-    z: a.x * b.y - a.y * b.x
-  };
-}
+
+
+
 
 /* Loop to check how many updates per second
 let updateCounter = 0;
@@ -56,15 +52,11 @@ let avatars = {};
 let screenCenter = {x:0, y:0}
 let screenWidth = 0
 let screenHeight = 0
+let rocketColor = {r:0, g:255, b:0}
 
 // Serve de HTML-pagina voor spelers
 app.get("/", (req, res) => {
-  res.sendFile(__dirname + "/public/user.html");
-});
-
-// Serve de joystick HTML-pagina voor spelers
-app.get("/joystick", (req, res) => {
-  res.sendFile(__dirname + "/public/joystick.html");
+  res.sendFile(__dirname + "/public/rotationControl.html");
 });
 
 app.get("/rotation", (req, res) => {
@@ -80,138 +72,19 @@ app.get("/central", (req, res) => {
 io.on("connection", (socket) => {
   console.log(`Nieuwe verbinding: ${socket.id}`);
 
+  socket.emit("updatedSceenCenter", {screenCenter, screenHeight, screenWidth})
+
   socket.on("registerCentralScreen", () => {
     centralScreenSocket.push(socket.id);
     console.log(`Central screen registered: ${socket.id}`);
   });
 
-  // Bij de eerste verbinding krijgt elke client de initiële avatarposities
-  socket.emit("allAvatars", avatars);
-
-  // Ontvang input van de client (bewegingen)
-  socket.on("move", (data) => {
+  socket.on("reportRocketPosition", (data) => {
     // Bewaar de nieuwe positie van de avatar
     if (!avatars[socket.id]) {
-      avatars[socket.id] = { x: 100, y: 100 };  // Startpositie
+      avatars[socket.id] = { x: screenCenter.x+1, y: screenCenter.y, rotation:0 , rocketColor};  // Startpositie
     }
-
-    if (data.direction === "left") {
-      avatars[socket.id].x -= 50;
-    } else if (data.direction === "right") {
-      avatars[socket.id].x += 50;
-    } else if (data.direction === "up") {
-      avatars[socket.id].y -= 50;
-    } else if (data.direction === "down") {
-      avatars[socket.id].y += 50;
-    }
-
-    // Stuur de nieuwe posities van alle avatars naar alle clients
-    io.emit("updateAvatars", avatars);
-  });
-
-  socket.on("moveAvatar", (data) => {
-    // Bewaar de nieuwe positie van de avatar
-    if (!avatars[socket.id]) {
-      avatars[socket.id] = { x: 100, y: 100 };  // Startpositie
-    }
-    const speed = 10;
-    
-    avatars[socket.id].x += speed * data.xdir
-    avatars[socket.id].y += speed * data.ydir
-
-    // Stuur de nieuwe posities van alle avatars naar alle clients
-    updateAvatars()
-  });
-
-  socket.on("moveRotation", (data) => {
-    // Bewaar de nieuwe positie van de avatar
-    if (!avatars[socket.id]) {
-      avatars[socket.id] = { x: screenCenter.x+1, y: screenCenter.y, rotation:0 };  // Startpositie
-    }
-    const speed = 20;
-    const rotationSpeed = speed/100;
-    
-    if (data.direction == "forward"){
-      let centerX = screenCenter.x; 
-      let centerY = screenCenter.y;
-
-      let centerXDir = centerX - avatars[socket.id].x;
-      let centerYDir = centerY - avatars[socket.id].y;
-
-      let CenterVectorLength = Math.sqrt(centerXDir**2 + centerYDir**2)
-
-      centerXDir = centerXDir/CenterVectorLength
-      centerYDir = centerYDir/CenterVectorLength
-      
-      let rocketXDir = Math.cos(avatars[socket.id].rotation)
-      let rocketYDir = Math.sin(avatars[socket.id].rotation)
-
-
-      let angleBetweenCenterAndRocketBeforeMove = Math.acos(centerXDir*rocketXDir+centerYDir*rocketYDir)
-
-      avatars[socket.id].x += speed * Math.cos(avatars[socket.id].rotation);
-      avatars[socket.id].y += speed * Math.sin(avatars[socket.id].rotation);
-      //avatars[socket.id].rotation compared to center, angle should be conserverd.
-      //Calculate angle made by rocket and center, and this should stay the same through 
-      //forward or backward motion.
-
-      centerXDir = centerX - avatars[socket.id].x;
-      centerYDir = centerY - avatars[socket.id].y;
-
-      CenterVectorLength = Math.sqrt(centerXDir**2 + centerYDir**2)
-
-      centerXDir = centerXDir/CenterVectorLength
-      centerYDir = centerYDir/CenterVectorLength
-
-      let angleBetweenCenterAndRocketAfterMove = Math.acos(centerXDir*rocketXDir+centerYDir*rocketYDir)
-
-      if (CenterVectorLength > speed * 1 ){
-        avatars[socket.id].rotation -=  Math.sign(cross({x:centerXDir, y:centerYDir, z:0},   {x:rocketXDir, y:rocketYDir, z:0}).z) * (angleBetweenCenterAndRocketAfterMove - angleBetweenCenterAndRocketBeforeMove)
-      }
-    }
-    if (data.direction == "backward"){
-      let centerX = screenCenter.x; 
-      let centerY = screenCenter.y;
-
-      let centerXDir = centerX - avatars[socket.id].x;
-      let centerYDir = centerY - avatars[socket.id].y;
-
-      let CenterVectorLength = Math.sqrt(centerXDir**2 + centerYDir**2)
-
-      centerXDir = centerXDir/CenterVectorLength
-      centerYDir = centerYDir/CenterVectorLength
-      
-      let rocketXDir = Math.cos(avatars[socket.id].rotation)
-      let rocketYDir = Math.sin(avatars[socket.id].rotation)
-
-      let angleBetweenCenterAndRocketBeforeMove = Math.acos(centerXDir*rocketXDir+centerYDir*rocketYDir)
-
-      avatars[socket.id].x -= speed * Math.cos(avatars[socket.id].rotation);
-      avatars[socket.id].y -= speed * Math.sin(avatars[socket.id].rotation);
-
-      centerXDir = centerX - avatars[socket.id].x;
-      centerYDir = centerY - avatars[socket.id].y;
-
-      CenterVectorLength = Math.sqrt(centerXDir**2 + centerYDir**2)
-
-      centerXDir = centerXDir/CenterVectorLength
-      centerYDir = centerYDir/CenterVectorLength
-
-      let angleBetweenCenterAndRocketAfterMove = Math.acos(centerXDir*rocketXDir+centerYDir*rocketYDir)
-      if (CenterVectorLength > speed * 1){
-        avatars[socket.id].rotation -=  Math.sign(cross({x:centerXDir, y:centerYDir, z:0},   {x:rocketXDir, y:rocketYDir, z:0}).z) * (angleBetweenCenterAndRocketAfterMove - angleBetweenCenterAndRocketBeforeMove)
-      }
-    }
-    if (data.direction == "clockwise"){
-      avatars[socket.id].rotation = (avatars[socket.id].rotation + rotationSpeed) ;
-    }
-    if (data.direction == "counterclockwise"){
-      avatars[socket.id].rotation = (avatars[socket.id].rotation - rotationSpeed) ;
-    }
-    if (avatars[socket.id].rotation>100*Math.PI){avatars[socket.id].rotation-=100*Math.PI}
-
-    // Stuur de nieuwe posities van alle avatars naar alle clients
-    updateAvatars()
+    avatars[socket.id] = data.rocketPosition  
   });
 
   // Als iemand de verbinding verbreekt, verwijder de avatar
@@ -225,8 +98,6 @@ io.on("connection", (socket) => {
       if (avatars[socket.id]){io.to(centralScreenSocket).emit("killDiv", socket.id);}
     console.log(`Gebruiker ${socket.id} is disconnected`);
     delete avatars[socket.id];  // Verwijder de avatar van de client
-    
-    updateAvatars()  // Update de avatars voor alle clients
     }
   });
 
@@ -237,6 +108,7 @@ io.on("connection", (socket) => {
       screenCenter.x = data.x
       screenCenter.y = data.y
       console.log("Updated screen center to", data)
+      io.emit("updatedSceenCenter", {screenCenter, screenHeight, screenWidth})
     }
   });
 });
@@ -246,3 +118,8 @@ server.listen(port, () => {
   console.log(`Server draait op http://localhost:${port}`);
 });
 
+
+
+const mainLoop = setInterval(function() {
+  updateAvatars()
+}, 100);
