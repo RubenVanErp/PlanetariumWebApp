@@ -1,19 +1,19 @@
 <!DOCTYPE html>
 <html lang="nl">
     <head>
-        <title>WebSocket Demo - Centraal Scherm</title>
+        <title>Centraal Scherm</title>
         <script src="https://cdn.socket.io/4.0.0/socket.io.min.js"></script>
         <link rel="stylesheet" href="centralStyle.css">
     </head>
     <body>
-        <h1>Centraal Scherm - Alle Avatars</h1>
 
         <div id="avatars" style="position: aboslute; width: 0; height: 0; background-color: #2d87dc; top: 0px; left: 0px">
             <!-- Hier worden alle avatars getoond -->
         </div>
 
-        <div id="centralCircle"></div>
-        <img src="assets/starfield.jpg" id="centralCircle" alt="Background">
+        <div class="centralCircle"></div>
+        <img src="assets/starfield.jpg" id="image1" class="centralCircle" alt="Background"></img>
+        <img src="" id="image2" class="centralCircle" alt="Background" style="opacity: 0;"></img>
         <script>
             // Maak verbinding met de server via WebSocket
             const socket = io();
@@ -73,6 +73,25 @@
             // Ontvang de avatars van de server bij de initiële verbinding
             socket.on("allAvatars", (avatars) => {
                 drawAvatars(avatars);
+            });
+
+            let showingImage1 = true;
+
+            socket.on("switchSceneCentral", (data) => {
+                const image1 = document.getElementById("image1");
+                const image2 = document.getElementById("image2");
+
+                if (showingImage1) {
+                    image2.src = data.path;
+                    image2.style.opacity = 1;
+                    image1.style.opacity = 0;
+                } else {
+                    image1.src = data.path;
+                    image1.style.opacity = 1;
+                    image2.style.opacity = 0;
+                }
+
+                showingImage1 = !showingImage1;
             });
 
             socket.on("killDiv", (id) => {

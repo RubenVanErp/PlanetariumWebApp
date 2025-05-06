@@ -1,4 +1,4 @@
-#centralCircle{
+.centralCircle{
     background-color: #000000;
     border-radius: 50%;
     height: 100vh;
@@ -7,6 +7,7 @@
     top: 0;
     left: calc(50vw - 50vh);
     z-index: -1;
+    transition: opacity 3s ease;
 }
 
 

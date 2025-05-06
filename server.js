@@ -69,6 +69,11 @@ app.get("/central", (req, res) => {
   res.sendFile(__dirname + "/public/central.html");
 });
 
+// Serve de centrale pagina (voor het centrale scherm)
+app.get("/scenes", (req, res) => {
+  res.sendFile(__dirname + "/public/scenes.html");
+});
+
 // WebSocket logica
 io.on("connection", (socket) => {
   console.log(`Nieuwe verbinding: ${socket.id}`);
@@ -86,6 +91,12 @@ io.on("connection", (socket) => {
       avatars[socket.id] = { x: screenCenter.x+1, y: screenCenter.y, rotation:0 , rocketColor};  // Startpositie
     }
     avatars[socket.id] = data.rocketPosition  
+  });
+
+  socket.on("switchScene", (data) =>{
+    if (centralScreenSocket) {
+      io.to(centralScreenSocket).emit("switchSceneCentral", data);
+  }
   });
 
   // Als iemand de verbinding verbreekt, verwijder de avatar
