@@ -1,8 +1,8 @@
 const socket = io();
-let throttleDelay = 100;
+let throttleDelay = 33;
 let rocketPosition;
 screenCenter = {x: 0, y: 0}
-const speed = 20;
+const speed = 6;
 const rotationSpeed = speed / 100;
 
 let rocketColor = {r:120 + Math.floor(Math.random() * 120), g:120 + Math.floor(Math.random() * 120), b:120 + Math.floor(Math.random() * 120)}
@@ -45,14 +45,22 @@ function moveAvatar(avatar, direction, speed){
   centerYDir = centerY - avatar.y;
 
   CenterVectorLength = Math.sqrt(centerXDir**2 + centerYDir**2)
+  if (CenterVectorLength == 0){ CenterVectorLength = 0.0001}
 
   centerXDir = centerXDir/CenterVectorLength
   centerYDir = centerYDir/CenterVectorLength
 
   let angleBetweenCenterAndRocketAfterMove = Math.acos(centerXDir*rocketXDir+centerYDir*rocketYDir)
-  if (CenterVectorLength > speed * 1){
+  if (CenterVectorLength > speed * 3){
     avatar.rotation -=  Math.sign(crossProduct({x:centerXDir, y:centerYDir, z:0},   {x:rocketXDir, y:rocketYDir, z:0}).z) * (angleBetweenCenterAndRocketAfterMove - angleBetweenCenterAndRocketBeforeMove)
   }
+
+  boundaryDistance = screenCenter.height/2 - 30
+  if ( CenterVectorLength > boundaryDistance){
+    avatar.x = centerX + boundaryDistance * (avatar.x - centerX)/CenterVectorLength
+    avatar.y = centerY + boundaryDistance * (avatar.y - centerY)/CenterVectorLength
+  }
+
 }
 function crossProduct(a, b) {
   return {
@@ -74,11 +82,12 @@ function updateMiniMap(rocketPosition){
   miniY = normalizedPosition.y * minimapDiameter + minimapCenter.y - miniRocket.offsetHeight/2;
   miniX = normalizedPosition.x * minimapDiameter + minimapCenter.x - miniRocket.offsetWidth/2;
 
-  miniRocket.style.setProperty('--top', `${miniY}px`);
-  miniRocket.style.setProperty('--left', `${miniX}px`);
   miniRocket.style.setProperty('--visibility', "visible")
-  miniRocket.style.transform = "rotate(" + String(45 + rocketPosition.rotation/Math.PI*180) + "deg)";
-
+  miniRocket.style.transform = `
+  translate3d(${miniX}px, ${miniY}px, 0) 
+  rotate(${45 + rocketPosition.rotation / Math.PI * 180}deg)
+`;
+  miniRocket.style.transform = "transition: left 0.1s linear, top 0.1s linear, transform 0.1s linear;"
   
 }
 function getRocketSVG(minirocket, red,green,blue){ 
@@ -146,7 +155,7 @@ for (let [buttonId, direction] of buttons) {
 }
 
 function emitLocation(rocketPosition){
-  socket.emit("reportRocketPosition", {rocketPosition})
+  socket.volatile.emit("reportRocketPosition", {rocketPosition})
 }
 
 socket.on("updatedSceenCenter", (data) => {

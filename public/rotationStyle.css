@@ -112,7 +112,7 @@ html, body {
     width: min(56.25vw, 25vh);
     height: min(56.25vw, 25vh);
     border-radius: calc(0.5 * min(67.5vw, 25vh));
-    background-color: gray
+    background-color: #000000
 }
 #miniRocket{
     position: relative;
@@ -125,5 +125,5 @@ html, body {
     border-radius: 0;
     opacity: 1;
     z-index: 5;
-    transition: left 0.1s linear, top 0.1s linear, transform 0.1s linear;
+    
 }
