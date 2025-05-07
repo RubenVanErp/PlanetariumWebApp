@@ -34,6 +34,7 @@
                 for (const id in avatars) {
                     const avatar = avatars[id];
                     let div = document.getElementById("avatar-" + id);
+                    let flame = document.getElementById("avatar-" + id + "-flame");
 
                     if (!div) {
                         div = document.createElement("div");
@@ -50,17 +51,43 @@
                         document.body.appendChild(div);
 
                     }
+                    if (!flame) {
+                        flame = document.createElement("div");
+                        flame.id = "avatar-" + id + "-flame";
+                        flame.className = "flame";
+                        flame.style.position = "absolute";
+                        flame.style.width = "20px";  // Visible size
+                        flame.style.height = "20px";
+                        flame.style.backgroundColor = "transparent";
+                        flame.style.transition = "left 0.1s linear, top 0.1s linear, transform 0.08s linear, scale 0.1s linear";
+                        flame.style.transformOrigin = "center center";
+                        flame.style.zIndex = "0";  // Behind rocket
+                        flame.innerHTML = innerHTML = getRocketSVG(avatar.rocketColor.r,avatar.rocketColor.g,avatar.rocketColor.b);
+            
+                        // Position it at the back, centered vertically
+                        flame.style.left = "-10px"; // Half width behind the rocket
+                        flame.style.top = "50%";
+                        flame.style.transform = "translateY(-50%)";
+
+                        div.appendChild(flame);
+                    }
 
                     let scaleFactor = 0.5 //change this if assets are too small
                     let distance = Math.sqrt((window.innerHeight / 2 - avatar.y) ** 2 + (window.innerWidth / 2 - avatar.x) ** 2);
                     
                     let scale = scaleFactor/(Math.sin(Math.PI * distance / ( 2 * window.innerHeight / 2)) *( 2 * window.innerHeight / 2 / (Math.PI * distance)));
+                    
+                    if (avatar.thrustOn){
+                        flame.style.visibility = "visible"
+                    } else {
+                        flame.style.visibility = "hidden"
+                    }
 
-                    div.style.left = avatar.x - div.offsetWidth/2 + "px";
-                    div.style.top = avatar.y - div.offsetHeight/2 + "px";
+                    div.style.left = Math.round(avatar.x - div.offsetWidth/2) + "px";
+                    div.style.top = Math.round(avatar.y - div.offsetHeight/2)+ "px";
                     
                     
-                    div.style.transform = `scale(${scale}) rotate(${45 + avatar.rotation }rad)`
+                    div.style.transform = `scale(${scale}) rotate(${1/4 * Math.PI + avatar.rotation }rad)`
                 }
             }
 

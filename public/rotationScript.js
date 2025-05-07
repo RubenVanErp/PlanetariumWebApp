@@ -2,8 +2,11 @@ const socket = io();
 let throttleDelay = 33;
 let rocketPosition;
 screenCenter = {x: 0, y: 0}
-const speed = 6;
-const rotationSpeed = speed / 100;
+let speed = 0;
+const maxSpeed = 6;
+const speedStep = maxSpeed / 12
+const rotationSpeed = maxSpeed / 50;
+let slowdownInterval;
 
 let rocketColor = {r:120 + Math.floor(Math.random() * 120), g:120 + Math.floor(Math.random() * 120), b:120 + Math.floor(Math.random() * 120)}
 let miniRocket = document.createElement("div");
@@ -24,13 +27,17 @@ function moveAvatar(avatar, direction, speed){
 
   let CenterVectorLength = Math.sqrt(centerXDir**2 + centerYDir**2)
 
+  if (CenterVectorLength == 0){ CenterVectorLength = 0.0001}
   centerXDir = centerXDir/CenterVectorLength
   centerYDir = centerYDir/CenterVectorLength
   
   let rocketXDir = Math.cos(avatar.rotation)
   let rocketYDir = Math.sin(avatar.rotation)
 
-  let angleBetweenCenterAndRocketBeforeMove = Math.acos(centerXDir*rocketXDir+centerYDir*rocketYDir)
+  
+  let innerProduct = centerXDir*rocketXDir+centerYDir*rocketYDir
+  if (Math.abs(innerProduct)) {innerProduct = innerProduct/Math.abs(innerProduct)}
+  let angleBetweenCenterAndRocketBeforeMove = Math.acos(innerProduct)
 
   if (direction == "backward"){
     directionFactor = 1
@@ -40,17 +47,20 @@ function moveAvatar(avatar, direction, speed){
 
   avatar.x -= directionFactor * speed * Math.cos(avatar.rotation);
   avatar.y -= directionFactor * speed * Math.sin(avatar.rotation);
-
+  
   centerXDir = centerX - avatar.x;
   centerYDir = centerY - avatar.y;
 
   CenterVectorLength = Math.sqrt(centerXDir**2 + centerYDir**2)
-  if (CenterVectorLength == 0){ CenterVectorLength = 0.0001}
 
+  if (CenterVectorLength == 0){ CenterVectorLength = 0.0001}
   centerXDir = centerXDir/CenterVectorLength
   centerYDir = centerYDir/CenterVectorLength
 
-  let angleBetweenCenterAndRocketAfterMove = Math.acos(centerXDir*rocketXDir+centerYDir*rocketYDir)
+  innerProduct = centerXDir*rocketXDir+centerYDir*rocketYDir
+  if (Math.abs(innerProduct)) {innerProduct = innerProduct/Math.abs(innerProduct)}
+  let angleBetweenCenterAndRocketAfterMove = Math.acos(innerProduct)
+
   if (CenterVectorLength > speed * 3){
     avatar.rotation -=  Math.sign(crossProduct({x:centerXDir, y:centerYDir, z:0},   {x:rocketXDir, y:rocketYDir, z:0}).z) * (angleBetweenCenterAndRocketAfterMove - angleBetweenCenterAndRocketBeforeMove)
   }
@@ -61,6 +71,7 @@ function moveAvatar(avatar, direction, speed){
     avatar.y = centerY + boundaryDistance * (avatar.y - centerY)/CenterVectorLength
   }
 
+
 }
 function crossProduct(a, b) {
   return {
@@ -68,6 +79,7 @@ function crossProduct(a, b) {
     y: a.z * b.x - a.x * b.z,
     z: a.x * b.y - a.y * b.x
   };
+  
 }
 function updateMiniMap(rocketPosition){
   let minimap = document.getElementById("minimap")
@@ -106,52 +118,83 @@ const buttons = [
 ];
 
 let touchIntervals = {};
+let toggleStates = { forward: false, backward: false };
 
 for (let [buttonId, direction] of buttons) {
   const button = document.getElementById(buttonId);
 
-  button.addEventListener("touchstart", (event) => {
-    event.preventDefault();
-  
-    // Avoid stacking intervals
-    if (touchIntervals[buttonId]) return;
-    if (!rocketPosition){rocketPosition = {x: screenCenter.x, y:screenCenter.y,rotation:0, rocketColor}}
-  
-    touchIntervals[buttonId] = setInterval(() => {
-      
-      if (direction == "forward" || direction == "backward") {
-        moveAvatar(rocketPosition, direction, speed);
+  if (direction === "forward" || direction === "backward") {
+    // Toggle logic for forward/backward
+    button.addEventListener("touchstart", (event) => {
+      event.preventDefault();
+      if (!rocketPosition) {
+        rocketPosition = { x: screenCenter.x, y: screenCenter.y, rotation: Math.random() * 2 * Math.PI , rocketColor, thrustOn: false };
       }
-      if (direction == "clockwise") {
-        rocketPosition.rotation += rotationSpeed;
-      }
-      if (direction == "counterclockwise") {
-        rocketPosition.rotation -= rotationSpeed;
-      }
-      if (rocketPosition.rotation > 100 * Math.PI) {
-        rocketPosition.rotation -= 100 * Math.PI;
-      }
-  
-      // Send rocket position on every interval tick
-      emitLocation(rocketPosition);
-      updateMiniMap(rocketPosition);
-  
-      // Optional UI effect
-      button.style.transform = `scale(${0.9})`;
-  
-    }, throttleDelay); // Emits and moves every 100ms
-  
-  }, { passive: false });
 
-  const stopTouch = () => {
-    clearInterval(touchIntervals[buttonId]);
-    delete touchIntervals[buttonId];
-    button.style.backgroundColor = "#002b38";
-    button.style.transform = `scale(${1})`
-  };
+      if (toggleStates[direction]) {
+        // Stop movement
 
-  button.addEventListener("touchend", stopTouch, { passive: false });
-  button.addEventListener("touchcancel", stopTouch, { passive: false });
+        rocketPosition.thrustOn = false
+        clearInterval(touchIntervals[buttonId]);
+        startSlowdown(rocketPosition, direction)
+        delete touchIntervals[buttonId];
+        toggleStates[direction] = false;
+        button.style.backgroundColor = "#002b38";
+        button.textContent = "GO"
+        button.style.transform = `scale(1)`;
+      } else {
+        rocketPosition.thrustOn = true
+        // Start movement
+        killSlowdown()
+        if (speed < maxSpeed){
+          speed += speedStep
+        }
+        toggleStates[direction] = true;
+        button.style.transform = `scale(0.9)`;
+        button.textContent = "STOP"
+        touchIntervals[buttonId] = setInterval(() => {
+          if (speed < maxSpeed){
+            speed += speedStep
+          }
+          moveAvatar(rocketPosition, direction, speed);
+          emitLocation(rocketPosition);
+          updateMiniMap(rocketPosition);
+        }, throttleDelay);
+      }
+    }, { passive: false });
+
+  } else {
+    // Hold-based logic for left/right (rotation)
+    button.addEventListener("touchstart", (event) => {
+      event.preventDefault();
+      if (touchIntervals[buttonId]) return;
+      if (!rocketPosition) {
+        rocketPosition = { x: screenCenter.x, y: screenCenter.y, rotation: 0, rocketColor, thrustOn: false };
+      }
+
+      touchIntervals[buttonId] = setInterval(() => {
+        if (direction === "clockwise") {
+          rocketPosition.rotation += rotationSpeed;
+        } else if (direction === "counterclockwise") {
+          rocketPosition.rotation -= rotationSpeed;
+        }
+
+
+        emitLocation(rocketPosition);
+        updateMiniMap(rocketPosition);
+        button.style.transform = `scale(0.9)`;
+      }, throttleDelay);
+    }, { passive: false });
+
+    const stopTouch = () => {
+      clearInterval(touchIntervals[buttonId]);
+      delete touchIntervals[buttonId];
+      button.style.backgroundColor = "#002b38";
+      button.style.transform = `scale(1)`;
+    };
+    button.addEventListener("touchend", stopTouch, { passive: false });
+    button.addEventListener("touchcancel", stopTouch, { passive: false });
+  }
 }
 
 function emitLocation(rocketPosition){
@@ -171,3 +214,18 @@ document.addEventListener('gesturestart', function (e) {
   document.addEventListener('gestureend', function (e) {
     e.preventDefault();
   });
+
+  function killSlowdown(){
+    if (slowdownInterval){clearInterval(slowdownInterval)}
+  }
+function startSlowdown(rocketPosition, direction) {
+  slowdownInterval = setInterval(() => {
+    moveAvatar(rocketPosition, direction, speed);
+    emitLocation(rocketPosition);
+    updateMiniMap(rocketPosition);
+    speed -= speedStep
+    if (speed <=0)(
+      killSlowdown()
+    )
+  }, throttleDelay);
+}

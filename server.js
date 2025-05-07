@@ -9,12 +9,15 @@ TODO:
 Cloud hosting launch
 make pretty
 add N E S W directions on dome and minimap
-remove bakcwards motion
-implement flame when travelling
-smooth slowdown
+Get better models for rocket and flame
+Make some aspects changable from the scenes control, like framerate, speed.
+randomised start location and rotation
 
 notes:
 Fisheye equidistant dome projection
+
+
+Using Hostinger and strato, rubens accounts voor het hosten
 
 ---------------------------*/
 
@@ -88,7 +91,7 @@ io.on("connection", (socket) => {
   socket.on("reportRocketPosition", (data) => {
     // Bewaar de nieuwe positie van de avatar
     if (!avatars[socket.id]) {
-      avatars[socket.id] = { x: screenCenter.x+1, y: screenCenter.y, rotation:0 , rocketColor};  // Startpositie
+      avatars[socket.id] = { x: screenCenter.x+1, y: screenCenter.y, rotation:0 , rocketColor, thrustOn: false};  // Startpositie
     }
     avatars[socket.id] = data.rocketPosition  
   });

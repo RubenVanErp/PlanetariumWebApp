@@ -19,7 +19,7 @@ body {
 
 #buttonBackground {
     position: absolute;
-    top: calc(10vh);
+    top: calc(45vh);
     left: center;
     width: min(90vw, 40vh);
     height: min(90vw, 40vh);
@@ -29,13 +29,10 @@ body {
 
 .button {
     position: absolute;
-    width: 25%;
-    height: 25%;
     border: none;
     background-color: #002b38;
     color: white;
     box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
-    border-radius: 15%;
     cursor: pointer;
     display: flex;
     justify-content: center;
@@ -47,21 +44,30 @@ body {
     -ms-user-select: none;
 }
 #buttonleft {
-    top: calc(37.5%);
+    top: calc(55%);
     left: calc(10%);
+    width: 37.5%;
+    height: 35%;
+    border-radius: 15%;
 }
 #buttonright {
-    top: calc(37.5%);
-    left: calc(65%);
+    top: calc(55%);
+    left: calc(52.5%);
+    width: 37.5%;
+    height: 35%;
+    border-radius: 15%;
 }
 #buttonup {
     top: calc(10%);
-    left: calc(37.5%);;
+    left: calc(10%);
+    width: 80%;
+    height: 40%;
+    border-radius: calc(0.15 * 0.4 * min(90vw, 40vh));
 }
-#buttondown {
-    top: calc(65%);
-    left: calc(37.5%);;
+#buttondown{
+    visibility: hidden;
 }
+
 
 
 
@@ -98,7 +104,7 @@ html, body {
 
 #rocketCustomisationBackground {
     position: absolute;
-    top: calc(55vh);
+    top: calc(12.5vh);
     left: center;
     width: min(90vw, 40vh);
     height: min(67.5vw, 30vh);
@@ -119,11 +125,17 @@ html, body {
     top: var(--top);
     left: var(--left);
     visibility: var(--visibility);
-    width: min(2.8125vw, 1.25vh);
-    height: min(2.8125vw, 1.25vh);
-    border-radius: calc(0.5 * min(6.75vw, 2.5vh));
-    border-radius: 0;
-    opacity: 1;
+    width: min(4.21875vw, 1.875vh);
+    height: min(4.21875vw, 1.875vh);
     z-index: 5;
     
+}
+#background{
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100vw;
+    height: 100vh;
+    background-color: rgb(255, 255, 255);
+    z-index: -10;
 }
