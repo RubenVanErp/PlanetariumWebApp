@@ -9,6 +9,9 @@ TODO:
 Cloud hosting launch
 make pretty
 add N E S W directions on dome and minimap
+remove bakcwards motion
+implement flame when travelling
+smooth slowdown
 
 notes:
 Fisheye equidistant dome projection
