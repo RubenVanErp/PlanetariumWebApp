@@ -36,7 +36,7 @@ function moveAvatar(avatar, direction, speed){
 
   
   let innerProduct = centerXDir*rocketXDir+centerYDir*rocketYDir
-  if (Math.abs(innerProduct)) {innerProduct = innerProduct/Math.abs(innerProduct)}
+  if (Math.abs(innerProduct)>1) {innerProduct = innerProduct/Math.abs(innerProduct)}
   let angleBetweenCenterAndRocketBeforeMove = Math.acos(innerProduct)
 
   if (direction == "backward"){
@@ -58,12 +58,14 @@ function moveAvatar(avatar, direction, speed){
   centerYDir = centerYDir/CenterVectorLength
 
   innerProduct = centerXDir*rocketXDir+centerYDir*rocketYDir
-  if (Math.abs(innerProduct)) {innerProduct = innerProduct/Math.abs(innerProduct)}
+  if (Math.abs(innerProduct)>1) {innerProduct = innerProduct/Math.abs(innerProduct)}
   let angleBetweenCenterAndRocketAfterMove = Math.acos(innerProduct)
 
+  console.log("1." ,avatar.rotation)
   if (CenterVectorLength > speed * 3){
-    avatar.rotation -=  Math.sign(crossProduct({x:centerXDir, y:centerYDir, z:0},   {x:rocketXDir, y:rocketYDir, z:0}).z) * (angleBetweenCenterAndRocketAfterMove - angleBetweenCenterAndRocketBeforeMove)
+     avatar.rotation -=  Math.sign(crossProduct({x:centerXDir, y:centerYDir, z:0},   {x:rocketXDir, y:rocketYDir, z:0}).z) * (angleBetweenCenterAndRocketAfterMove - angleBetweenCenterAndRocketBeforeMove)
   }
+  console.log("2.", avatar.rotation)
 
   boundaryDistance = screenCenter.height/2 - 30
   if ( CenterVectorLength > boundaryDistance){

@@ -12,6 +12,7 @@ add N E S W directions on dome and minimap
 Get better models for rocket and flame
 Make some aspects changable from the scenes control, like framerate, speed.
 randomised start location and rotation
+Maybe change to polar coordinates
 
 notes:
 Fisheye equidistant dome projection
