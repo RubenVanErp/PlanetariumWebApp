@@ -19,3 +19,41 @@
     padding: 0;
     z-index: 0;
 }
+
+.cardinal {
+    position: absolute;
+    font-size: 5vh;
+    font-family: Arial, Helvetica, sans-serif;
+    color: rgb(255, 106, 0);
+}
+#north{
+    top: calc(5vh);
+    left: calc(50vw - 2.5vh);
+    transform: rotate(180deg);
+}
+#south{
+    top: calc(90vh);
+    
+    left: calc(50vw - 2.5vh);
+}
+#east{
+    top: calc(47.5vh);
+    left: calc(50vw - 45vh);
+    transform: rotate(90deg);
+}
+#west{
+    top: calc(47.5vh);
+    left: calc(50vw + 40vh);
+    transform: rotate(270deg);
+}
+
+
+#windrose{
+    position: absolute;
+    width: 20vh;
+    height: 20vh;
+    top: 40vh;
+    left: calc(50vw - 10vh);
+    transform: scale(-1, 1);
+    ;
+}

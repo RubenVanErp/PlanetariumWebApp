@@ -6,12 +6,9 @@ const path = require('path');
 /*---------------------------
 
 TODO:
-check why using mobile its jittery
-Server side throtteling and batching
 Cloud hosting launch
 make pretty
 add N E S W directions on dome and minimap
-Add scene switching
 
 notes:
 Fisheye equidistant dome projection

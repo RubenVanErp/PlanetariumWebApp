@@ -14,6 +14,12 @@
         <div class="centralCircle"></div>
         <img src="assets/starfield.jpg" id="image1" class="centralCircle" alt="Background"></img>
         <img src="" id="image2" class="centralCircle" alt="Background" style="opacity: 0;"></img>
+
+        <img src="assets/windrose.webp" id="windrose">
+        <div id="north" class="cardinal">N</div>
+        <div id="east" class="cardinal">O</div>
+        <div id="south" class="cardinal">Z</div>
+        <div id="west" class="cardinal">W</div>
         <script>
             // Maak verbinding met de server via WebSocket
             const socket = io();
@@ -75,8 +81,8 @@
                 drawAvatars(avatars);
             });
 
-            let showingImage1 = true;
 
+            let showingImage1 = true;
             socket.on("switchSceneCentral", (data) => {
                 const image1 = document.getElementById("image1");
                 const image2 = document.getElementById("image2");
