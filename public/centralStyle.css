@@ -21,28 +21,27 @@
 
 .cardinal {
     position: absolute;
-    font-size: 5vh;
+    font-size: 3vh;
     font-family: Arial, Helvetica, sans-serif;
     color: rgb(255, 106, 0);
 }
 #north{
-    top: calc(5vh);
-    left: calc(50vw - 2.5vh);
+    top: calc(3vh);
+    left: calc(50vw - 1vh);
     transform: rotate(180deg);
 }
 #south{
-    top: calc(90vh);
-    
-    left: calc(50vw - 2.5vh);
+    top: calc(94vh);
+    left: calc(50vw - 1vh);
 }
 #east{
-    top: calc(47.5vh);
-    left: calc(50vw - 45vh);
+    top: calc(49vh);
+    left: calc(50vw - 47vh);
     transform: rotate(90deg);
 }
 #west{
-    top: calc(47.5vh);
-    left: calc(50vw + 40vh);
+    top: calc(49vh);
+    left: calc(50vw + 44vh);
     transform: rotate(270deg);
 }
 

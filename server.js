@@ -7,7 +7,6 @@ const path = require('path');
 /*---------------------------
 
 TODO:
-Cloud hosting launch
 make pretty
 add N E S W directions on dome and minimap
 Get better models for rocket and flame
