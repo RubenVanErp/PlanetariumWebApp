@@ -31,12 +31,17 @@ const port = 3000;
 app.set('trust proxy', true);
 
 let centralScreenSocket = [];
+let scenesSocket = [];
 function updateAvatars() {
   if (centralScreenSocket) {
       io.to(centralScreenSocket).emit("allAvatars", avatars);
   }
 }
 
+
+let userCount = 0
+let actualFramerate = 0
+let mainLoop
 
 
 
@@ -82,6 +87,8 @@ app.get("/scenes", (req, res) => {
 
 // WebSocket logica
 io.on("connection", (socket) => {
+  userCount +=1
+  
   console.log(`Nieuwe verbinding: ${socket.id}`);
 
   socket.emit("updatedSceenCenter", {screenCenter, screenHeight, screenWidth})
@@ -90,6 +97,33 @@ io.on("connection", (socket) => {
     centralScreenSocket.push(socket.id);
     console.log(`Central screen registered: ${socket.id}`);
   });
+
+  socket.on("registerSceneScreen", () => {
+    scenesSocket.push(socket.id);
+    console.log(`Scene screen registered: ${socket.id}`);
+  });
+
+  socket.on("setFrameRate", (data) =>{
+    console.log("framerate set to ", data.frameRate)
+    serverThrottleDelay = 1000/data.frameRate
+    clearInterval(mainLoop)
+    mainLoop = setInterval(function() {
+      const now = Date.now();
+      const elapsed = now - lastTimestamp;
+      lastTimestamp = now;
+      actualFramerate = elapsed
+    
+      
+      updateAvatars();
+    }, serverThrottleDelay);
+
+  });
+  
+
+  
+
+
+
 
   socket.on("reportRocketPosition", (data) => {
     // Bewaar de nieuwe positie van de avatar
@@ -107,6 +141,7 @@ io.on("connection", (socket) => {
 
   // Als iemand de verbinding verbreekt, verwijder de avatar
   socket.on("disconnect", () => {
+    userCount -= 1
     if (centralScreenSocket.includes(socket.id)) {
       index = centralScreenSocket.indexOf(socket.id);
       centralScreenSocket.splice(index, 1);
@@ -137,7 +172,21 @@ server.listen(port, () => {
 });
 
 
+let lastTimestamp = Date.now();
+let serverThrottleDelay = 100
 
-const mainLoop = setInterval(function() {
-  updateAvatars()
-}, 100);
+mainLoop = setInterval(function() {
+  const now = Date.now();
+  const elapsed = now - lastTimestamp;
+  lastTimestamp = now;
+  actualFramerate = elapsed
+
+  
+  updateAvatars();
+}, serverThrottleDelay);
+
+
+
+const updateDataloop = setInterval(function() {
+  io.to(scenesSocket).emit("updateData", {number: userCount, actualFrameRate: actualFramerate, aimedFrameRate: serverThrottleDelay});
+}, 500);
