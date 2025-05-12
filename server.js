@@ -13,6 +13,7 @@ Get better models for rocket and flame
 Make some aspects changable from the scenes control, like framerate, speed.
 randomised start location and rotation
 Maybe change to polar coordinates
+Disconnecting central screen and scene screen not working properly
 
 notes:
 Fisheye equidistant dome projection
@@ -146,8 +147,12 @@ io.on("connection", (socket) => {
       index = centralScreenSocket.indexOf(socket.id);
       centralScreenSocket.splice(index, 1);
       console.log(`Central screen ${socket.id} disconnected`);
-      
-    } else {
+    } else if  (scenesSocket.includes(socket.id)){
+      userCount -= 1
+      index = scenesSocket.indexOf(socket.id);
+      scenesSocket.splice(index, 1);
+      console.log(`Scenes screen ${socket.id} disconnected`);
+    }else {
       if (avatars[socket.id]){io.to(centralScreenSocket).emit("killDiv", socket.id);}
     console.log(`Gebruiker ${socket.id} is disconnected`);
     delete avatars[socket.id];  // Verwijder de avatar van de client
