@@ -3,6 +3,7 @@ const http = require("http");
 const { Server } = require("socket.io");
 const path = require('path');
 
+
 /*---------------------------
 
 TODO:
@@ -27,6 +28,8 @@ const server = http.createServer(app);
 const io = new Server(server);
 
 const port = 3000;
+
+app.set('trust proxy', true);
 
 let centralScreenSocket = [];
 function updateAvatars() {
